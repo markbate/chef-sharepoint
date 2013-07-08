@@ -1,10 +1,10 @@
 download_url = "http://care.dlservice.microsoft.com//dl/download/3/D/7/3D713F30-C316-49B8-9CC0-E1BFC34B63A0/SharePointServer_x64_en-us.img"
-
+download_to = "C:/Users/#{ENV['USERNAME']}/Downloads/SharePointServer_x64_en-us.img"
 node.override['sharepoint']['server_role'] = "SINGLESERVER"
 
 # probably shouldn't use temp to download a disk image,
 # but not sure how to get the user that chef is running as
-remote_file "C:/Windows/Temp/SharePointServer_x64_en-us.img" do
+remote_file download_to do
   source download_url
 end
 
@@ -12,7 +12,7 @@ end
 # windows doesn't let us set the mount point :/
 mount_pount = powershell "mount SPS image" do
   code <<-EOH
-  $mountResult = Mount-DiskImage -PassThru -ImagePath "C:/Windows/Temp/SharePointServer_x64_en-us.img"
+  $mountResult = Mount-DiskImage -PassThru -ImagePath "#{download_to}"
   ($mountResult | Get-Volume).DriveLetter
   EOH
 end
