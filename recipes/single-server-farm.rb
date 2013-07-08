@@ -2,20 +2,42 @@ download_url = "http://care.dlservice.microsoft.com//dl/download/3/D/7/3D713F30-
 
 node.override['sharepoint']['server_role'] = "SINGLESERVER"
 
+# probably shouldn't use temp to download a disk image,
+# but not sure how to get the user that chef is running as
+remote_file "C:/Windows/Temp/SharePointServer_x64_en-us.img" do
+  source download_url
+end
 
+# mount the image as a drive & get the letter back
+# windows doesn't let us set the mount point :/
+mount_pount = powershell "mount SPS image" do
+  code <<-EOH
+  $mountResult = Mount-DiskImage -PassThru -ImagePath "C:/Windows/Temp/SharePointServer_x64_en-us.img"
+  ($mountResult | Get-Volume).DriveLetter
+  EOH
+end
+Chef::Log.info("Mounted the image as drive: #{mount_point}")
+
+# create the config file
 template "C:/Windows/Temp/sharepoint-config.xml" do
   source "config.xml.erb"
   rights :read, "Everyone"
 end
 
+# run the prereq installer. not sure, but this might need to restart things.
+# if it does, then obviously it'll break the connection. silly windows.
 windows_package "sharepoint preparation" do
-  source "D:/prerequisiteinstaller.exe"
+  source "#{mount_point}:/prerequisiteinstaller.exe"
   action :install
   options "/unattended"
 end
 
+# install sharepoint
 windows_package "sharepoint" do
-  source "D:/setup.exe"
+  source "#{mount_point}:/setup.exe"
   action :install
   options "/config C:/Windows/Temp/sharepoint-config.xml"
 end
+
+# configuration stuff would go here
+
