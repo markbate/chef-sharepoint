@@ -9,13 +9,13 @@ template "C:/Windows/Temp/sharepoint-config.xml" do
 end
 
 windows_package "sharepoint preparation" do
-  source "F:/prerequisiteinstaller.exe"
+  source "D:/prerequisiteinstaller.exe"
   action :install
   options "/unattended"
 end
 
 windows_package "sharepoint" do
-  source "F:/setup.exe"
+  source "D:/setup.exe"
   action :install
   options "/config C:/Windows/Temp/sharepoint-config.xml"
 end
