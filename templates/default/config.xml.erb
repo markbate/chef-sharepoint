@@ -1,0 +1,17 @@
+<Configuration>
+	<Package Id="sts">
+		<Setting Id="LAUNCHEDFROMSETUPSTS" Value="Yes"/>
+	</Package>
+
+	<Package Id="spswfe">
+		<Setting Id="SETUPCALLED" Value="1"/>
+	</Package>
+
+	<Logging Type="verbose" Path="%temp%" Template="SharePoint Server Setup(*).log"/>
+	<PIDKEY Value="<%= node['sharepoint']['product_key'] %>" />
+	<Display Level="none" CompletionNotice="no" />
+	<Setting Id="SERVERROLE" Value="<%= node['sharepoint']['server_role'] %>"/>
+	<Setting Id="USINGUIINSTALLMODE" Value="0"/>
+	<Setting Id="SETUP_REBOOT" Value="Never" />
+	<Setting Id="SETUPTYPE" Value="CLEAN_INSTALL"/>
+</Configuration>
