@@ -2,21 +2,19 @@ download_url = "http://care.dlservice.microsoft.com//dl/download/3/D/7/3D713F30-
 download_to = "C:/Users/#{ENV['USERNAME']}/Downloads/SharePointServer_x64_en-us.img"
 node.override['sharepoint']['server_role'] = "SINGLESERVER"
 
-# probably shouldn't use temp to download a disk image,
-# but not sure how to get the user that chef is running as
 remote_file download_to do
   source download_url
 end
 
 # mount the image as a drive & get the letter back
 # windows doesn't let us set the mount point :/
-mount_pount = powershell "mount SPS image" do
+node.default['sharepoint']['mount_pount'] = powershell "mount SPS image" do
   code <<-EOH
   $mountResult = Mount-DiskImage -PassThru -ImagePath "#{download_to}"
   ($mountResult | Get-Volume).DriveLetter
   EOH
 end
-Chef::Log.info("Mounted the image as drive: #{mount_point}")
+Chef::Log.info("Mounted the image as drive: #{node.default['sharepoint']['mount_pount']}")
 
 # create the config file
 template "C:/Windows/Temp/sharepoint-config.xml" do
@@ -27,14 +25,14 @@ end
 # run the prereq installer. not sure, but this might need to restart things.
 # if it does, then obviously it'll break the connection. silly windows.
 windows_package "sharepoint preparation" do
-  source "#{mount_point}:/prerequisiteinstaller.exe"
+  source "#{node.default['sharepoint']['mount_pount']}:/prerequisiteinstaller.exe"
   action :install
   options "/unattended"
 end
 
 # install sharepoint
 windows_package "sharepoint" do
-  source "#{mount_point}:/setup.exe"
+  source "#{node.default['sharepoint']['mount_pount']}:/setup.exe"
   action :install
   options "/config C:/Windows/Temp/sharepoint-config.xml"
 end
